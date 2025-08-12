@@ -24,3 +24,32 @@
 2025-08-12 16:24:51,116 - WARNING - All fetch methods failed for https://www.sportinglife.com/greyhound/racecards/2025-08-12
 2025-08-12 16:24:54,821 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812
 2025-08-12 16:24:58,797 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/usa/20250812
+2025-08-12 16:32:31,416 - INFO - Initialized RacingAndSports source
+2025-08-12 16:32:31,416 - INFO - Initialized SportingLifeHorseApi source
+2025-08-12 16:32:31,416 - INFO - Initialized RacingPost source
+2025-08-12 16:32:31,416 - INFO - Initialized SkySports source
+2025-08-12 16:32:31,416 - INFO - Initialized AtTheRaces source
+2025-08-12 16:32:31,416 - INFO - Initialized GBGreyhounds source
+2025-08-12 16:32:31,418 - ERROR - Error fetching from SportingLifeGreyhound: 'SportingLife'
+2025-08-12 16:32:35,544 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250812
+2025-08-12 16:32:40,579 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812
+2025-08-12 16:32:44,603 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/usa/20250812
+2025-08-12 16:32:48,603 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/france/20250812
+2025-08-12 16:32:55,943 - INFO - Initialized RacingAndSports source
+2025-08-12 16:32:55,944 - INFO - Initialized SportingLifeHorseApi source
+2025-08-12 16:32:55,944 - INFO - Initialized RacingPost source
+2025-08-12 16:32:55,944 - INFO - Initialized SkySports source
+2025-08-12 16:32:55,944 - INFO - Initialized AtTheRaces source
+2025-08-12 16:32:55,944 - INFO - Initialized GBGreyhounds source
+2025-08-12 16:32:55,946 - ERROR - Error fetching from SportingLifeGreyhound: 'SportingLife'
+2025-08-12 16:32:59,793 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250812
+2025-08-12 16:33:03,281 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812
+2025-08-12 16:33:35,111 - INFO - Initialized RacingAndSports source
+2025-08-12 16:33:35,111 - INFO - Initialized SportingLifeHorseApi source
+2025-08-12 16:33:35,111 - INFO - Initialized RacingPost source
+2025-08-12 16:33:35,111 - INFO - Initialized SkySports source
+2025-08-12 16:33:35,111 - INFO - Initialized AtTheRaces source
+2025-08-12 16:33:35,111 - INFO - Initialized GBGreyhounds source
+2025-08-12 16:33:38,736 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250812
+2025-08-12 16:33:39,277 - WARNING - All fetch methods failed for https://www.sportinglife.com/greyhound/racecards/2025-08-12
+2025-08-12 16:33:42,249 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812

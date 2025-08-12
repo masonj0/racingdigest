@@ -13,7 +13,7 @@ and robust HTTP client implementation for scraping horse and dog racing sites.
 CONFIG = {
     # Application Settings
     "SCHEMA_VERSION": "7.2",
-    "APP_NAME": "Utopian Value Scanner (API Enhanced Edition)",
+    "APP_NAME": "Utopian Value Scanner (The Rediscovery Edition)",
 
     # Directory Settings
     "DEFAULT_CACHE_DIR": ".cache_v7_final",
@@ -39,38 +39,16 @@ CONFIG = {
         "ENABLED": True
     },
 
-    # Data Sources (All available sources enabled for maximum coverage)
+    # Data Sources (All sources enabled for maximum coverage)
     "SOURCES": {
-        "AtTheRaces": {
-            "enabled": True, 
-            "base_url": "https://www.attheraces.com", 
-            "regions": ["uk", "ireland", "usa", "france", "saf", "aus"]
-        },
-        "SkySports": {
-            "enabled": True, 
-            "base_url": "https://www.skysports.com/racing/racecards"
-        },
-        "SportingLife": {
-            "enabled": True, 
-            "base_url": "https://www.sportinglife.com",
-            "greyhound_url": "https://www.sportinglife.com/greyhound"
-        },
-        "SportingLifeHorseApi": {
-            "enabled": True,
-            "base_url": "https://www.sportinglife.com/api/racing/race"
-        },
-        "RacingPost": {
-            "enabled": True,
-            "base_url": "https://www.racingpost.com"
-        },
-        "HarnessAustralia": {
-            "enabled": True, 
-            "base_url": "https://www.harness.org.au"
-        },
-        "StandardbredCanada": {
-            "enabled": True, 
-            "base_url": "https://standardbredcanada.ca"
-        },
+        "RacingAndSports": {"enabled": True, "base_url": "https://www.racingandsports.com.au"},
+        "SportingLifeHorseApi": {"enabled": True, "base_url": "https://www.sportinglife.com/api/horse-racing/race"},
+        "RacingPost": {"enabled": True, "base_url": "https://www.racingpost.com"},
+        "SkySports": {"enabled": True, "base_url": "https://www.skysports.com/racing/racecards"},
+        "AtTheRaces": {"enabled": True, "base_url": "https://www.attheraces.com", "regions": ["uk", "ireland", "usa", "france", "saf", "aus"]},
+        "GBGreyhounds": {"enabled": True, "base_url": "https://www.sportinglife.com"},
+        "HarnessAustralia": {"enabled": True, "base_url": "https://www.harness.org.au"},
+        "StandardbredCanada": {"enabled": True, "base_url": "https://standardbredcanada.ca"},
     },
 
     # Command-line Argument Defaults
@@ -1073,10 +1051,11 @@ class SportingLifeGreyhoundSource(DataSourceBase):
     
     async def fetch_races(self, date_range: Tuple[datetime, datetime]) -> List[RaceData]:
         races = []
-        base_url = CONFIG["SOURCES"]["SportingLife"]["greyhound_url"]
+        base_url = CONFIG["SOURCES"]["GBGreyhounds"]["base_url"]
+        greyhound_url = f"{base_url}/greyhound"
         
         for dt in self._generate_date_range(date_range):
-            url = f"{base_url}/racecards/{dt.strftime('%Y-%m-%d')}"
+            url = f"{greyhound_url}/racecards/{dt.strftime('%Y-%m-%d')}"
             
             try:
                 day_races = await self._parse_greyhound_day(url, dt.date())
@@ -1247,98 +1226,138 @@ class SportingLifeHorseApiSource(DataSourceBase):
             logging.debug(f"Could not parse individual Sporting Life API race item: {e}")
             return None
 
-class RacingPostSource(DataSourceBase):
-    """Racing Post data source"""
-    
+class RacingAndSportsSource(DataSourceBase):
+    """
+    Primary data source using the R&S JSON feed for a high-coverage, multi-discipline
+    backbone of global race data.
+    """
     async def fetch_races(self, date_range: Tuple[datetime, datetime]) -> List[RaceData]:
-        races = []
-        base_url = CONFIG["SOURCES"]["RacingPost"]["base_url"]
-        
+        out: List[RaceData] = []
+        today = datetime.now().date()
+        # This API is for "today's racing", so we only hit it if today is in the requested range
+        if not (date_range[0].date() <= today <= date_range[1].date()):
+            return []
+
+        url = f"{CONFIG['SOURCES']['RacingAndSports']['base_url']}/todays-racing-json-v2"
+        json_text = await self.http_client.fetch(url)
+        if not json_text:
+            self._add_error("Failed to fetch the main JSON feed.", url=url)
+            return []
+
+        try:
+            payload = json.loads(json_text)
+            for discipline_group in payload or []:
+                discipline_name = (discipline_group.get("Discipline") or "").lower()
+                discipline = "greyhound" if "greyhound" in discipline_name else "harness" if "harness" in discipline_name else "thoroughbred"
+                
+                for country_group in discipline_group.get("Countries", []):
+                    country_code = country_group.get("Code", "N/A").upper()
+                    for meeting in country_group.get("Meetings", []):
+                        course = (meeting.get("Course") or "").strip()
+                        if not course: continue
+                        
+                        meeting_url = meeting.get("PreMeetingUrl") or meeting.get("Url")
+                        form_url = meeting.get("PDFUrl")
+
+                        for race_item in meeting.get("Races", []):
+                            race_time = parse_local_hhmm(race_item.get("RaceTimeLocal"))
+                            if not race_time: continue
+
+                            date_str = today.strftime("%Y-%m-%d")
+                            tz_name = get_track_timezone(course, country_code)
+                            
+                            try:
+                                local_dt = datetime.combine(today, datetime.strptime(race_time, "%H:%M").time()).replace(tzinfo=ZoneInfo(tz_name))
+                            except Exception:
+                                self._add_error(f"Could not parse timezone '{tz_name}' for {course}")
+                                continue
+
+                            race_url = race_item.get("Url") or meeting_url
+
+                            out.append(RaceData(
+                                id=generate_race_id(course, date_str, race_time),
+                                course=course,
+                                race_time=race_time,
+                                utc_datetime=local_dt.astimezone(ZoneInfo("UTC")),
+                                local_time=local_dt.strftime("%H:%M"),
+                                timezone_name=tz_name,
+                                field_size=int(race_item.get("FieldSize") or 0),
+                                country=country_code,
+                                discipline=discipline,
+                                race_url=race_url,
+                                form_guide_url=form_url,
+                                data_sources={"course": "R&S-API"}
+                            ))
+        except Exception as e:
+            self._add_error(f"Failed to parse R&S JSON payload: {e}", url=url)
+        return out
+
+class RacingPostSource(DataSourceBase):
+    """
+    Data source for the Racing Post, the gold standard for UK & Irish racing.
+    This is a resilient HTML scraper for their racecards.
+    """
+    async def fetch_races(self, date_range: Tuple[datetime, datetime]) -> List[RaceData]:
+        races: List[RaceData] = []
+        base_url = CONFIG['SOURCES']['RacingPost']['base_url']
         for dt in self._generate_date_range(date_range):
-            url = f"{base_url}/racecards/{dt.strftime('%Y-%m-%d')}"
+            date_str = dt.strftime('%Y-%m-%d')
+            index_url = f"{base_url}/racecards/{date_str}"
+            html = await self.http_client.fetch(index_url)
+            if not html: continue
+
+            soup = BeautifulSoup(html, 'html.parser')
+            # Find links to each individual meeting's racecard page
+            meeting_links = {urljoin(base_url, a['href']) for a in soup.select('a[data-test-selector="link-meetingCourseName"]')}
             
-            try:
-                day_races = await self._parse_racing_post_day(url, dt.date())
-                races.extend(day_races)
-            except Exception as e:
-                self._add_error(f"Failed to parse Racing Post: {e}", url=url)
-        
+            tasks = [self._parse_meeting(link, dt) for link in meeting_links]
+            results = await asyncio.gather(*tasks)
+            for res in results:
+                races.extend(res)
         return races
 
-    async def _parse_racing_post_day(self, url: str, date: datetime.date) -> List[RaceData]:
-        """Parse Racing Post racing page"""
-        html = await self.http_client.fetch(url)
-        if not html:
-            return []
-        
+    async def _parse_meeting(self, meeting_url: str, dt: datetime) -> List[RaceData]:
+        html = await self.http_client.fetch(meeting_url)
+        if not html: return []
+
         races = []
         soup = BeautifulSoup(html, 'html.parser')
+        course = (soup.select_one('h1[data-test-selector="header-courseName"]') or soup.find('h1')).get_text(strip=True)
+        country = "GB" # Assume GB/IE default
         
-        # Find meeting containers
-        meetings = soup.find_all('div', class_=re.compile(r'meeting|racecard'))
-        
-        for meeting in meetings:
+        # Find each race on the meeting page
+        for race_container in soup.select('div[data-test-selector^="racecard-raceStream"]'):
             try:
-                # Extract course name
-                course_elem = meeting.find(['h1', 'h2', 'h3'], class_=re.compile(r'course|venue'))
-                if not course_elem:
-                    continue
-                
-                course_name = course_elem.get_text(strip=True)
-                
-                # Find races
-                race_elements = meeting.find_all('div', class_=re.compile(r'race-time|race-info'))
-                
-                for race_elem in race_elements:
-                    # Extract time
-                    time_text = race_elem.get_text()
-                    race_time = parse_local_hhmm(time_text)
-                    if not race_time:
-                        continue
-                    
-                    # Extract field size
-                    runners_match = re.search(r'(\d+)\s+runners?', time_text, re.I)
-                    field_size = int(runners_match.group(1)) if runners_match else 0
-                    
-                    if field_size == 0:
-                        continue
-                    
-                    # Determine discipline and country
-                    discipline = "thoroughbred"
-                    country = "GB"
-                    
-                    if "greyhound" in time_text.lower() or "dog" in time_text.lower():
-                        discipline = "greyhound"
-                    elif "harness" in time_text.lower() or "trot" in time_text.lower():
-                        discipline = "harness"
-                    
-                    # Set timezone
-                    tz_name = get_track_timezone(course_name, country)
-                    local_dt = datetime.combine(
-                        date, 
-                        datetime.strptime(race_time, "%H:%M").time()
-                    ).replace(tzinfo=ZoneInfo(tz_name))
+                time_tag = race_container.select_one('span[data-test-selector="racecard-raceTime"]')
+                if not time_tag: continue
+                race_time = time_tag.get_text(strip=True)
 
-                    race = RaceData(
-                        id=generate_race_id(course_name, date.strftime("%Y-%m-%d"), race_time),
-                        course=course_name,
-                        race_time=race_time,
-                        utc_datetime=local_dt.astimezone(ZoneInfo("UTC")),
-                        local_time=local_dt.strftime("%H:%M"),
-                        timezone_name=tz_name,
-                        field_size=field_size,
-                        country=country,
-                        discipline=discipline,
-                        race_url=url,
-                        data_sources={"course": "RacingPost"}
-                    )
-                    
-                    races.append(race)
-                    
+                runner_count_tag = race_container.select_one('span[data-test-selector="racecard-header-runners"]')
+                field_size = int(runner_count_tag.get_text(strip=True).split()[0]) if runner_count_tag else 0
+                if field_size == 0: continue
+                
+                race_link = race_container.select_one('a[data-test-selector="racecard-raceTitleLink"]')
+                race_url = urljoin(meeting_url, race_link['href']) if race_link else meeting_url
+
+                date_str = dt.strftime("%Y-%m-%d")
+                tz_name = get_track_timezone(course, country)
+                local_dt = datetime.combine(dt.date(), datetime.strptime(race_time, "%H:%M").time()).replace(tzinfo=ZoneInfo(tz_name))
+
+                races.append(RaceData(
+                    id=generate_race_id(course, date_str, race_time),
+                    course=course,
+                    race_time=race_time,
+                    utc_datetime=local_dt.astimezone(ZoneInfo("UTC")),
+                    local_time=local_dt.strftime("%H:%M"),
+                    timezone_name=tz_name,
+                    field_size=field_size,
+                    country=country,
+                    discipline="thoroughbred",
+                    race_url=race_url,
+                    data_sources={"course": "RP", "runners": "RP"}
+                ))
             except Exception as e:
-                self._add_error(f"Error parsing Racing Post meeting: {e}")
-                continue
-        
+                self._add_error(f"Failed to parse RP race container: {e}", url=meeting_url)
         return races
 
 # =============================================================================
@@ -1355,20 +1374,22 @@ class RacingDataAggregator:
 
     def _initialize_sources(self) -> List[DataSourceBase]:
         """Initialize enabled data sources"""
-        sources = []
-        
-        source_classes = {
-            "SkySports": SkySportsSource,
-            "AtTheRaces": AtTheRacesSource,
-            "SportingLife": SportingLifeGreyhoundSource,
+        source_map = {
+            "RacingAndSports": RacingAndSportsSource,
             "SportingLifeHorseApi": SportingLifeHorseApiSource,
             "RacingPost": RacingPostSource,
+            "SkySports": SkySportsSource,
+            "AtTheRaces": AtTheRacesSource,
+            "GBGreyhounds": SportingLifeGreyhoundSource,  # Map to existing greyhound source
+            "HarnessAustralia": None,  # Placeholder - not implemented yet
+            "StandardbredCanada": None,  # Placeholder - not implemented yet
         }
         
+        sources = []
         for name, config in CONFIG["SOURCES"].items():
-            if config.get("enabled") and name in source_classes:
+            if config.get("enabled") and name in source_map and source_map[name] is not None:
                 try:
-                    source_instance = source_classes[name](self.http_client)
+                    source_instance = source_map[name](self.http_client)
                     sources.append(source_instance)
                     logging.info(f"Initialized {name} source")
                 except Exception as e:
