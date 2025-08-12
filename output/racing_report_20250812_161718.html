@@ -1,0 +1,115 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Utopian Value Scanner (Perfected Edition) - Racing Value Scanner</title>
+    <style>
+        :root{color-scheme:light dark}
+        body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background-color:#f4f4f9;color:#333;margin:0;padding:20px;line-height:1.6}
+        .container{max-width:1400px;margin:auto;background-color:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+        .race.value-extreme { border-left: 8px solid #ff4444; background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%); }
+        .race.value-high { border-left: 6px solid #ff8800; background: linear-gradient(135deg, #fff8f0 0%, #ffeecc 100%); }
+        .race.value-good { border-left: 4px solid #00aa00; background: linear-gradient(135deg, #f0fff0 0%, #e6ffe6 100%); }
+        .race.value-decent { border-left: 3px solid #0088cc; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); }
+        .odds-evens-plus { background: linear-gradient(45deg, #ff6b6b, #feca57); color: white; font-weight: bold; padding: 4px 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(255,107,107,0.3); animation: pulse 2s infinite; }
+        .odds-short-good { background: #48cae4; color: white; padding: 3px 6px; border-radius: 4px; font-weight: 600; }
+        .odds-longshot { background: #6c757d; color: white; padding: 2px 5px; border-radius: 3px; }
+        @keyframes pulse { 0% { box-shadow: 0 2px 4px rgba(255,107,107,0.3); } 50% { box-shadow: 0 4px 8px rgba(255,107,107,0.6); } 100% { box-shadow: 0 2px 4px rgba(255,107,107,0.3); } }
+        h1{color:#1a1a1a;border-bottom:3px solid #007bff;padding-bottom:10px}
+        .summary{background:#e7f3ff;padding:15px;border-radius:8px;margin-bottom:20px;border-left:4px solid #007bff}
+        .tabs{display:flex;border-bottom:2px solid #dee2e6;margin-bottom:20px;flex-wrap:wrap}
+        .tab{padding:10px 20px;cursor:pointer;background:#f8f9fa;border:1px solid #dee2e6;border-bottom:none;margin-right:2px;border-radius:4px 4px 0 0;white-space:nowrap}
+        .tab.active{background:#007bff;color:white;border-color:#007bff}
+        .tab-content{display:none}.tab-content.active{display:block}
+        .race{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:8px;position:relative}
+        .race.thoroughbred::before{content:"🐎";position:absolute;top:10px;right:15px;font-size:1.5em}
+        .race.harness::before{content:"🏇";position:absolute;top:10px;right:15px;font-size:1.5em}
+        .race.greyhound::before{content:"🐕";position:absolute;top:10px;right:15px;font-size:1.5em}
+        .head{display:flex;flex-wrap:wrap;align-items:center;gap:15px;font-weight:600;font-size:1.2em;margin-bottom:10px}
+        .pill{display:inline-block;padding:4px 12px;border-radius:12px;background:#e9ecef;color:#495057;font-size:.9rem;font-weight:500}
+        .value-score-pill{font-weight:bold;font-size:1rem}
+        .value-score-90plus{background:#ff4444;color:white}
+        .value-score-80plus{background:#ff8800;color:white}
+        .value-score-70plus{background:#00aa00;color:white}
+        .value-score-60plus{background:#0088cc;color:white}
+        .favorites-row{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:12px 0;padding:12px;background:#f8f9fa;border-radius:6px}
+        .favorite-info{text-align:center}
+        .favorite-name{font-weight:bold;margin-bottom:5px}
+        .favorite-odds{font-size:1.1em}
+        .links a{display:inline-block;text-decoration:none;background-color:#007bff;color:white;padding:8px 15px;border-radius:4px;margin-right:10px;font-size:.9em;margin-top:8px}
+        .links a.alt{background:#28a745}
+        .links a:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+        .runner-count{font-size:0.9em;color:#666;margin-top:8px}
+        .data-sources{margin-top:8px}
+        .source-pill{background:#6c757d;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em;margin-right:5px}
+        @media (max-width: 768px) { .favorites-row{grid-template-columns:1fr;gap:10px} .head{font-size:1.1em} }
+        @media (prefers-color-scheme:dark){
+            body{background-color:#121212;color:#e0e0e0} .container{background-color:#1e1e1e} h1{color:#e0e0e0;border-color:#4dabf7}
+            .summary{background-color:#2c3e50;border-left-color:#4dabf7} .tabs{border-color:#444}
+            .tab{background:#333;color:#ccc;border-color:#444} .tab.active{background:#4dabf7;color:#000;border-color:#4dabf7}
+            .race{background-color:#2a2a2a;border-color:#444} .favorites-row{background:#333} .pill{background:#333;color:#ccc}
+            .links a{background-color:#4dabf7;color:#000} .links a.alt{background:#2ecc71}
+            .race.value-extreme { background: linear-gradient(135deg, #4d1a1a 0%, #3d1111 100%); }
+            .race.value-high { background: linear-gradient(135deg, #4d331a 0%, #3d2211 100%); }
+            .race.value-good { background: linear-gradient(135deg, #1a4d1a 0%, #113d11 100%); }
+            .race.value-decent { background: linear-gradient(135deg, #1a334d 0%, #11223d 100%); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🎯 Utopian Value Scanner (Perfected Edition)</h1>
+    <div class="summary">
+        <strong>📊 SCAN RESULTS:</strong> 
+        Found <b>0</b> raw races from <b>4</b> sources. 
+        <b>0</b> unique after merging. 
+        <b>0</b> high-value races identified.
+        ⏱️ Runtime: <b>24.4s</b>
+    </div>
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('filtered-races', this)">🎯 Superfecta Fields (0)</div>
+        <div class="tab" onclick="showTab('value-races', this)">🔥 High Value (0)</div>
+        <div class="tab" onclick="showTab('all-races', this)">📋 All Races (0)</div>
+    </div>
+    
+    <div id="filtered-races" class="tab-content active"><h2>🎯 Superfecta Fields (4-8 Runners)</h2></div>
+    <div id="value-races" class="tab-content"><h2>🔥 Premium Value Opportunities (Score 70+)</h2></div>
+    <div id="all-races" class="tab-content"><h2>📋 Complete Race List (by Score)</h2></div>
+    <div style="text-align:center;margin-top:30px;font-size:.9em;color:#777">Generated 2025-08-12T16:17:18 | Best of luck! 🍀</div>
+</div>
+<script>
+    function showTab(tabName, element){
+        document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach(c=>c.classList.remove("active"));
+        document.getElementById(tabName).classList.add("active");
+        element.classList.add("active");
+    }
+    function convertOddsToFractional(oddsStr) {
+        if (!oddsStr || typeof oddsStr !== 'string') return 999;
+        const s = oddsStr.trim().toUpperCase();
+        if (s === 'SP' || s === 'NR') return 999;
+        if (s === 'EVS' || s === 'EVENS') return 1.0;
+        if (s.includes('/')) { const parts = s.split('/'); const num = parseFloat(parts[0]); const den = parseFloat(parts[1]); return den > 0 ? num / den : 999; }
+        const decimal = parseFloat(s);
+        return !isNaN(decimal) && decimal > 1 ? decimal - 1 : 999;
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.race').forEach(race => {
+            const score = parseFloat(race.dataset.score || 0);
+            if (score >= 90) race.classList.add('value-extreme');
+            else if (score >= 80) race.classList.add('value-high');
+            else if (score >= 70) race.classList.add('value-good');
+            else if (score >= 60) race.classList.add('value-decent');
+        });
+        document.querySelectorAll('.favorite-odds').forEach(el => {
+            const odds = convertOddsToFractional(el.textContent);
+            if (odds >= 1.0 && odds <= 2.5) el.classList.add('odds-evens-plus');
+            else if (odds < 1.0) el.classList.add('odds-short-good');
+            else el.classList.add('odds-longshot');
+        });
+    });
+</script>
+</body>
+</html>

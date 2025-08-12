@@ -1,0 +1,16 @@
+2025-08-12 16:16:53,629 - INFO - Initialized AtTheRaces source
+2025-08-12 16:16:53,630 - INFO - Initialized SkySports source
+2025-08-12 16:16:53,630 - INFO - Initialized SportingLife source
+2025-08-12 16:16:53,630 - INFO - Initialized RacingPost source
+2025-08-12 16:16:57,816 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250812
+2025-08-12 16:16:57,946 - WARNING - All fetch methods failed for https://www.sportinglife.com/greyhound/racecards/2025-08-12
+2025-08-12 16:17:01,963 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812
+2025-08-12 16:17:06,005 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/usa/20250812
+2025-08-12 16:17:10,054 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/france/20250812
+2025-08-12 16:17:14,048 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/saf/20250812
+2025-08-12 16:17:18,041 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/aus/20250812
+2025-08-12 16:17:18,041 - INFO - Source AtTheRaces returned 0 races
+2025-08-12 16:17:18,041 - INFO - Source SkySports returned 0 races
+2025-08-12 16:17:18,041 - INFO - Source SportingLifeGreyhound returned 0 races
+2025-08-12 16:17:18,041 - INFO - Source RacingPost returned 0 races
+2025-08-12 16:17:18,050 - INFO - Report saved to output/racing_report_20250812_161718.html
