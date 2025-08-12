@@ -1,4 +1,4 @@
-# 🎯 Utopian Value Scanner V7.1 (Perfected Edition)
+# 🎯 Utopian Value Scanner V7.2 (API Enhanced Edition)
 
 A comprehensive Python script for scraping horse and dog racing sites to identify upcoming races with small fields and great returns for favorites and second favorites.
 
@@ -20,6 +20,7 @@ A comprehensive Python script for scraping horse and dog racing sites to identif
 - **Sky Sports Racing**: Comprehensive UK racing coverage
 - **At The Races**: Multi-region racing with live odds
 - **Sporting Life**: Greyhound racing specialist
+- **Sporting Life Horse API**: High-quality JSON API for global horse racing (NEW!)
 - **Racing Post**: Premium racing data
 - **Automatic Fallbacks**: Robust error handling with multiple source attempts
 
@@ -108,6 +109,19 @@ The scanner uses a sophisticated algorithm to score races based on:
 - **Greyhound Racing**: +10% (more predictable)
 - **Small Field + Good Spread**: +15% additional bonus
 
+### 🚀 API vs Web Scraping
+
+The **Sporting Life Horse API** source provides significant advantages:
+
+- **🔒 Reliability**: JSON API is much more stable than web scraping
+- **🌍 Global Coverage**: International racing from multiple countries
+- **⚡ Speed**: Direct API calls are faster than parsing HTML
+- **📊 Rich Data**: Complete runner information with live odds
+- **🛡️ Block-Resistant**: APIs are less likely to be blocked than web scrapers
+- **🎯 Accuracy**: Structured data reduces parsing errors
+
+This API source is automatically prioritized when available and provides the most comprehensive horse racing coverage.
+
 ## 🔧 Configuration
 
 ### Data Sources
@@ -118,6 +132,7 @@ You can enable/disable sources in the script configuration:
     "AtTheRaces": {"enabled": True},
     "SkySports": {"enabled": True}, 
     "SportingLife": {"enabled": True},
+    "SportingLifeHorseApi": {"enabled": True},  # High-quality API source
     "RacingPost": {"enabled": True}
 }
 ```

@@ -12,8 +12,8 @@ and robust HTTP client implementation for scraping horse and dog racing sites.
 
 CONFIG = {
     # Application Settings
-    "SCHEMA_VERSION": "7.1",
-    "APP_NAME": "Utopian Value Scanner (Perfected Edition)",
+    "SCHEMA_VERSION": "7.2",
+    "APP_NAME": "Utopian Value Scanner (API Enhanced Edition)",
 
     # Directory Settings
     "DEFAULT_CACHE_DIR": ".cache_v7_final",
@@ -54,6 +54,10 @@ CONFIG = {
             "enabled": True, 
             "base_url": "https://www.sportinglife.com",
             "greyhound_url": "https://www.sportinglife.com/greyhound"
+        },
+        "SportingLifeHorseApi": {
+            "enabled": True,
+            "base_url": "https://www.sportinglife.com/api/racing/race"
         },
         "RacingPost": {
             "enabled": True,
@@ -1147,6 +1151,102 @@ class SportingLifeGreyhoundSource(DataSourceBase):
         
         return races
 
+class SportingLifeHorseApiSource(DataSourceBase):
+    """
+    Fetches stable and comprehensive global horse racing data from the 
+    Sporting Life JSON API. This is a high-quality, resilient source.
+    """
+    
+    async def fetch_races(self, date_range: Tuple[datetime, datetime]) -> List[RaceData]:
+        """Fetches all horse races for the given date range from the API."""
+        out: List[RaceData] = []
+        base_url = CONFIG["SOURCES"]["SportingLifeHorseApi"]["base_url"]
+        
+        for dt in self._generate_date_range(date_range):
+            # The API is date-specific, so we query day by day.
+            api_url = f"{base_url}?limit=250&date_start={dt.strftime('%Y-%m-%d')}&date_end={dt.strftime('%Y-%m-%d')}&sort_direction=ASC&sort_field=RACE_TIME"
+            
+            json_text = await self.http_client.fetch(api_url)
+            if not json_text:
+                self._add_error(f"Failed to fetch API data for {dt.strftime('%Y-%m-%d')}", url=api_url)
+                continue
+                
+            try:
+                payload = json.loads(json_text)
+                if not isinstance(payload, list):
+                    self._add_error(f"API response was not a list for {dt.strftime('%Y-%m-%d')}", url=api_url)
+                    continue
+
+                for race_item in payload:
+                    if parsed_race := self._parse_race_item(race_item):
+                        out.append(parsed_race)
+            except json.JSONDecodeError:
+                self._add_error(f"Failed to decode JSON from API for {dt.strftime('%Y-%m-%d')}", url=api_url)
+            except Exception as e:
+                self._add_error(f"An unexpected error occurred while parsing API data: {e}", url=api_url)
+
+        return out
+
+    def _parse_race_item(self, item: Dict[str, Any]) -> Optional[RaceData]:
+        """Parses a single race object from the JSON API response."""
+        try:
+            rs = item.get("race_summary", {})
+            course = (rs.get("course_name") or "").strip()
+            date_str = rs.get("date")
+            time_str = rs.get("time")
+            ride_count = int(rs.get("ride_count") or 0)
+
+            if not all([course, date_str, time_str, ride_count > 0]):
+                return None
+
+            # Extract runner details
+            runners: List[Dict[str, Any]] = []
+            for ride in item.get("rides", []):
+                horse_info = ride.get("horse", {})
+                betting_info = ride.get("betting", {})
+                if horse_name := horse_info.get("name"):
+                    runners.append({
+                        "name": horse_name,
+                        "odds_str": (betting_info.get("current_odds") or "").strip()
+                    })
+
+            if not runners:
+                return None
+
+            fav_sorted = sorted(runners, key=lambda r: convert_odds_to_fractional(r.get("odds_str", "")))
+            
+            # Determine country and timezone
+            country = (rs.get("country_code") or "GB").upper()
+            tz_name = get_track_timezone(course, country)
+            
+            local_dt = datetime.combine(
+                datetime.fromisoformat(date_str).date(), 
+                datetime.strptime(time_str, "%H:%M").time()
+            ).replace(tzinfo=ZoneInfo(tz_name))
+
+            race_url = f"https://www.sportinglife.com/racing/racecards/{normalize_course_name(course).replace(' ', '-')}/{date_str}/{time_str.replace(':', '')}"
+
+            return RaceData(
+                id=generate_race_id(course, date_str, time_str),
+                course=course,
+                race_time=time_str,
+                utc_datetime=local_dt.astimezone(ZoneInfo("UTC")),
+                local_time=local_dt.strftime("%H:%M"),
+                timezone_name=tz_name,
+                field_size=ride_count,
+                country=country,
+                discipline="thoroughbred",
+                favorite=fav_sorted[0] if fav_sorted else None,
+                second_favorite=fav_sorted[1] if len(fav_sorted) > 1 else None,
+                all_runners=runners,
+                race_url=race_url,
+                data_sources={"course": "SL-API", "runners": "SL-API", "odds": "SL-API"}
+            )
+        except Exception as e:
+            # Log the error but don't crash the whole source
+            logging.debug(f"Could not parse individual Sporting Life API race item: {e}")
+            return None
+
 class RacingPostSource(DataSourceBase):
     """Racing Post data source"""
     
@@ -1261,6 +1361,7 @@ class RacingDataAggregator:
             "SkySports": SkySportsSource,
             "AtTheRaces": AtTheRacesSource,
             "SportingLife": SportingLifeGreyhoundSource,
+            "SportingLifeHorseApi": SportingLifeHorseApiSource,
             "RacingPost": RacingPostSource,
         }
         

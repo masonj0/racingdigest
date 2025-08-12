@@ -14,3 +14,13 @@
 2025-08-12 16:17:18,041 - INFO - Source SportingLifeGreyhound returned 0 races
 2025-08-12 16:17:18,041 - INFO - Source RacingPost returned 0 races
 2025-08-12 16:17:18,050 - INFO - Report saved to output/racing_report_20250812_161718.html
+2025-08-12 16:24:46,639 - INFO - Initialized AtTheRaces source
+2025-08-12 16:24:46,639 - INFO - Initialized SkySports source
+2025-08-12 16:24:46,639 - INFO - Initialized SportingLife source
+2025-08-12 16:24:46,639 - INFO - Initialized SportingLifeHorseApi source
+2025-08-12 16:24:46,639 - INFO - Initialized RacingPost source
+2025-08-12 16:24:50,799 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250812
+2025-08-12 16:24:51,032 - WARNING - All fetch methods failed for https://www.sportinglife.com/api/racing/race?limit=250&date_start=2025-08-12&date_end=2025-08-12&sort_direction=ASC&sort_field=RACE_TIME
+2025-08-12 16:24:51,116 - WARNING - All fetch methods failed for https://www.sportinglife.com/greyhound/racecards/2025-08-12
+2025-08-12 16:24:54,821 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812
+2025-08-12 16:24:58,797 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/usa/20250812
