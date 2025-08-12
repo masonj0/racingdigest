@@ -1,0 +1,49 @@
+<div class="race {{ race.discipline }} value-{% if race.value_score >= 90 %}extreme{% elif race.value_score >= 80 %}high{% elif race.value_score >= 70 %}good{% else %}decent{% endif %}" data-score="{{ race.value_score }}">
+    <div class="race-header">
+        <div class="course-name">{{ race.course }}</div>
+        <div class="discipline-icon">
+            {% if race.discipline == 'thoroughbred' %}🐎{% elif race.discipline == 'harness' %}🏇{% elif race.discipline == 'greyhound' %}🐕{% endif %}
+        </div>
+    </div>
+    
+    <div class="race-meta">
+        <span class="meta-pill">{{ race.country }}</span>
+        <span class="meta-pill">{{ race.local_time }} {{ race.timezone_name }}</span>
+        <span class="meta-pill value-score value-score-{% if race.value_score >= 90 %}90plus{% elif race.value_score >= 80 %}80plus{% elif race.value_score >= 70 %}70plus{% elif race.value_score >= 60 %}60plus{% endif %}">
+            {{ "%.0f"|format(race.value_score) }}★
+        </span>
+    </div>
+    
+    <div class="favorites-grid">
+        <div class="favorite-card">
+            <div class="favorite-name">🥇 {{ (race.favorite.name or 'Unknown') if race.favorite else 'N/A' }}</div>
+            <div class="favorite-odds">{{ (race.favorite.odds_str or 'SP') if race.favorite else '' }}</div>
+        </div>
+        <div class="favorite-card">
+            <div class="favorite-name">🥈 {{ (race.second_favorite.name or 'Unknown') if race.second_favorite else 'N/A' }}</div>
+            <div class="favorite-odds">{{ (race.second_favorite.odds_str or 'SP') if race.second_favorite else '' }}</div>
+        </div>
+    </div>
+    
+    <div class="race-details">
+        <div class="field-size">
+            <strong>Field:</strong> {{ race.field_size }} runners
+        </div>
+        <div class="sources">
+            {% for source in race.data_sources.values() | unique | sort %}
+                <span class="source-tag">{{ source.upper() }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="{{ race.race_url }}" target="_blank" rel="noopener" class="btn btn-primary">
+            📋 Racecard
+        </a>
+        {% if race.form_guide_url %}
+            <a href="{{ race.form_guide_url }}" target="_blank" rel="noopener" class="btn btn-secondary">
+                📊 Form
+            </a>
+        {% endif %}
+    </div>
+</div>
