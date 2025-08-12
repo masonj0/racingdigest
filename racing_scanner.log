@@ -1,0 +1,27 @@
+2025-08-12 16:50:59,394 - INFO - Initialized RacingAndSports source
+2025-08-12 16:50:59,395 - INFO - Initialized SportingLifeHorseApi source
+2025-08-12 16:50:59,395 - INFO - Initialized RacingPost source
+2025-08-12 16:50:59,395 - INFO - Initialized SkySports source
+2025-08-12 16:50:59,395 - INFO - Initialized AtTheRaces source
+2025-08-12 16:50:59,395 - INFO - Initialized GBGreyhounds source
+2025-08-12 16:51:03,781 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250812
+2025-08-12 16:51:04,674 - WARNING - All fetch methods failed for https://www.sportinglife.com/greyhound/racecards/2025-08-12
+2025-08-12 16:51:07,540 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250812
+2025-08-12 16:51:08,672 - WARNING - All fetch methods failed for https://www.sportinglife.com/greyhound/racecards/2025-08-13
+2025-08-12 16:51:11,308 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/usa/20250812
+2025-08-12 16:51:15,342 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/france/20250812
+2025-08-12 16:51:19,062 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/saf/20250812
+2025-08-12 16:51:22,801 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/aus/20250812
+2025-08-12 16:51:26,569 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/uk/20250813
+2025-08-12 16:51:30,281 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/ireland/20250813
+2025-08-12 16:51:34,701 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/usa/20250813
+2025-08-12 16:51:38,489 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/france/20250813
+2025-08-12 16:51:42,745 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/saf/20250813
+2025-08-12 16:51:46,485 - WARNING - All fetch methods failed for https://www.attheraces.com/ajax/marketmovers/tabs/aus/20250813
+2025-08-12 16:51:46,486 - INFO - Source RacingAndSports returned 0 races
+2025-08-12 16:51:46,486 - INFO - Source SportingLifeHorseApi returned 0 races
+2025-08-12 16:51:46,486 - INFO - Source RacingPost returned 0 races
+2025-08-12 16:51:46,486 - INFO - Source SkySports returned 0 races
+2025-08-12 16:51:46,486 - INFO - Source AtTheRaces returned 0 races
+2025-08-12 16:51:46,486 - INFO - Source SportingLifeGreyhound returned 0 races
+2025-08-12 16:51:46,516 - INFO - Report saved to output/racing_report_20250812_165146.html
